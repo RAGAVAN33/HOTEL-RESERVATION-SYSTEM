@@ -1,0 +1,647 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if report_type == 'occupancy' %}
+        Occupancy Report - Hotel Reservation System
+    {% elif report_type == 'revenue' %}
+        Revenue Report - Hotel Reservation System
+    {% elif report_type == 'bookings' %}
+        Booking Statistics - Hotel Reservation System
+    {% else %}
+        Reports - Hotel Reservation System
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>
+                    {% if report_type == 'occupancy' %}
+                        <i class="fas fa-bed me-2"></i>Occupancy Report
+                    {% elif report_type == 'revenue' %}
+                        <i class="fas fa-dollar-sign me-2"></i>Revenue Report
+                    {% elif report_type == 'bookings' %}
+                        <i class="fas fa-chart-line me-2"></i>Booking Statistics
+                    {% else %}
+                        <i class="fas fa-chart-bar me-2"></i>Reports
+                    {% endif %}
+                </h2>
+                <div>
+                    <button class="btn btn-outline-primary me-2" onclick="window.print()">
+                        <i class="fas fa-print me-2"></i>Print Report
+                    </button>
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Report Selector -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="reportType" class="form-label">Report Type</label>
+                            <select class="form-select" id="reportType" onchange="changeReportType(this.value)">
+                                <option value="occupancy" {% if report_type == 'occupancy' %}selected{% endif %}>Occupancy Report</option>
+                                <option value="revenue" {% if report_type == 'revenue' %}selected{% endif %}>Revenue Report</option>
+                                <option value="bookings" {% if report_type == 'bookings' %}selected{% endif %}>Booking Statistics</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="month" class="form-label">Month</label>
+                            <select class="form-select" id="month" onchange="changeMonth(this.value)">
+                                {% for m in range(1, 13) %}
+                                    <option value="{{ m }}" {% if month == m %}selected{% endif %}>{{ ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m-1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="year" class="form-label">Year</label>
+                            <select class="form-select" id="year" onchange="changeYear(this.value)">
+                                {% for y in range(year-2, year+3) %}
+                                    <option value="{{ y }}" {% if year == y %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if report_type == 'occupancy' %}
+        <!-- Occupancy Report -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Occupancy Rate for {{ month_name }} {{ year }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <canvas id="occupancyChart" height="300"></canvas>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Occupied Rooms</th>
+                                        <th>Total Rooms</th>
+                                        <th>Occupancy Rate</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for day in data %}
+                                        <tr>
+                                            <td>{{ day.date }}</td>
+                                            <td>{{ day.occupied }}</td>
+                                            <td>{{ day.total }}</td>
+                                            <td>{{ day.rate }}%</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between">
+                                    <span>Average Occupancy Rate:</span>
+                                    <span class="fw-bold">{{ (data|map(attribute='rate')|sum / data|length)|round(2) }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between">
+                                    <span>Highest Occupancy Rate:</span>
+                                    <span class="fw-bold">{{ data|map(attribute='rate')|max }}%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between">
+                                    <span>Lowest Occupancy Rate:</span>
+                                    <span class="fw-bold">{{ data|map(attribute='rate')|min }}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Occupancy by Room Type -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Occupancy by Room Type</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="roomTypeChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Occupancy by Weekday</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="weekdayChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% elif report_type == 'revenue' %}
+        <!-- Revenue Report -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Revenue for {{ month_name }} {{ year }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Total Revenue</h5>
+                                        <h2 class="mb-0">${{ total_revenue }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Average Daily Revenue</h5>
+                                        <h2 class="mb-0">${{ (total_revenue / daily_revenue|length)|round(2) if daily_revenue|length > 0 else 0 }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card bg-warning text-dark">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Highest Daily Revenue</h5>
+                                        <h2 class="mb-0">${{ daily_revenue|map(attribute='1')|max if daily_revenue|length > 0 else 0 }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <canvas id="revenueChart" height="300"></canvas>
+                        </div>
+                        
+                        <h5 class="mb-3">Revenue by Room Type</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Room Type</th>
+                                        <th>Revenue</th>
+                                        <th>Percentage</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for room_type, amount in revenue_by_type %}
+                                        <tr>
+                                            <td>{{ room_type }}</td>
+                                            <td>${{ amount }}</td>
+                                            <td>{{ (amount / total_revenue * 100)|round(2) if total_revenue > 0 else 0 }}%</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Revenue Charts -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Revenue by Room Type</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="roomTypeRevenueChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Monthly Revenue Trend</h4>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="monthlyTrendChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    {% elif report_type == 'bookings' %}
+        <!-- Booking Statistics -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Booking Statistics for {{ month_name }} {{ year }}</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-primary text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Total Bookings</h5>
+                                        <h2 class="mb-0">{{ bookings_data.total }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-success text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Confirmed Bookings</h5>
+                                        <h2 class="mb-0">{{ bookings_data.by_status|selectattr('0', 'equalto', 'confirmed')|map(attribute='1')|sum }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-danger text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Cancelled Bookings</h5>
+                                        <h2 class="mb-0">{{ bookings_data.by_status|selectattr('0', 'equalto', 'cancelled')|map(attribute='1')|sum }}</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="card bg-info text-white">
+                                    <div class="card-body text-center">
+                                        <h5 class="card-title">Avg. Stay Duration</h5>
+                                        <h2 class="mb-0">{{ bookings_data.avg_duration }} nights</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <h5 class="mb-3">Bookings by Status</h5>
+                                <canvas id="bookingStatusChart" height="200"></canvas>
+                            </div>
+                            
+                            <div class="col-md-6 mb-4">
+                                <h5 class="mb-3">Bookings by Room Type</h5>
+                                <canvas id="bookingRoomTypeChart" height="200"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="mb-3">Booking Rate Analysis</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-striped">
+                                        <thead>
+                                            <tr>
+                                                <th>Room Type</th>
+                                                <th>Total Bookings</th>
+                                                <th>% of All Bookings</th>
+                                                <th>Avg. Length of Stay</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for room_type, count in bookings_data.by_type %}
+                                                <tr>
+                                                    <td>{{ room_type }}</td>
+                                                    <td>{{ count }}</td>
+                                                    <td>{{ (count / bookings_data.total * 100)|round(2) if bookings_data.total > 0 else 0 }}%</td>
+                                                    <td>{{ bookings_data.avg_duration }} nights</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function changeReportType(type) {
+        window.location.href = "{{ url_for('admin.reports') }}?type=" + type + "&month={{ month }}&year={{ year }}";
+    }
+    
+    function changeMonth(month) {
+        window.location.href = "{{ url_for('admin.reports') }}?type={{ report_type }}&month=" + month + "&year={{ year }}";
+    }
+    
+    function changeYear(year) {
+        window.location.href = "{{ url_for('admin.reports') }}?type={{ report_type }}&month={{ month }}&year=" + year;
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if report_type == 'occupancy' %}
+            // Occupancy Chart
+            const occupancyData = {
+                labels: [{% for day in data %}'{{ day.day }}',{% endfor %}],
+                datasets: [{
+                    label: 'Occupancy Rate (%)',
+                    data: [{% for day in data %}{{ day.rate }},{% endfor %}],
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            };
+            
+            const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+            new Chart(occupancyCtx, {
+                type: 'line',
+                data: occupancyData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Occupancy Rate (%)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Room Type Chart
+            const roomTypeData = {
+                labels: ['Single', 'Double', 'Deluxe', 'Family', 'Suite', 'Presidential Suite'],
+                datasets: [{
+                    label: 'Occupancy Rate (%)',
+                    data: [75, 82, 65, 90, 60, 40],
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(108, 117, 125, 0.7)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            const roomTypeCtx = document.getElementById('roomTypeChart').getContext('2d');
+            new Chart(roomTypeCtx, {
+                type: 'bar',
+                data: roomTypeData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+            // Weekday Chart
+            const weekdayData = {
+                labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+                datasets: [{
+                    label: 'Occupancy Rate (%)',
+                    data: [65, 59, 70, 81, 95, 98, 90],
+                    fill: true,
+                    backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(13, 110, 253, 1)'
+                }]
+            };
+            
+            const weekdayCtx = document.getElementById('weekdayChart').getContext('2d');
+            new Chart(weekdayCtx, {
+                type: 'radar',
+                data: weekdayData,
+                options: {
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+            
+        {% elif report_type == 'revenue' %}
+            // Revenue Chart
+            const revenueLabels = [{% for day, amount in daily_revenue %}'Day {{ day.split("-")[2] }}',{% endfor %}];
+            const revenueAmounts = [{% for day, amount in daily_revenue %}{{ amount }},{% endfor %}];
+            
+            const revenueData = {
+                labels: revenueLabels,
+                datasets: [{
+                    label: 'Daily Revenue ($)',
+                    data: revenueAmounts,
+                    backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                    borderColor: 'rgba(25, 135, 84, 1)',
+                    borderWidth: 2,
+                    tension: 0.1
+                }]
+            };
+            
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: revenueData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Revenue ($)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Room Type Revenue Chart
+            const roomTypeLabels = [{% for room_type, amount in revenue_by_type %}'{{ room_type }}',{% endfor %}];
+            const roomTypeAmounts = [{% for room_type, amount in revenue_by_type %}{{ amount }},{% endfor %}];
+            
+            const roomTypeRevenueData = {
+                labels: roomTypeLabels,
+                datasets: [{
+                    label: 'Revenue by Room Type ($)',
+                    data: roomTypeAmounts,
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(108, 117, 125, 0.7)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            const roomTypeRevenueCtx = document.getElementById('roomTypeRevenueChart').getContext('2d');
+            new Chart(roomTypeRevenueCtx, {
+                type: 'pie',
+                data: roomTypeRevenueData,
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Monthly Trend Chart (6 months)
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const currentMonthIndex = {{ month - 1 }};
+            
+            let last6Months = [];
+            for (let i = 5; i >= 0; i--) {
+                let monthIndex = (currentMonthIndex - i + 12) % 12;
+                last6Months.push(monthNames[monthIndex]);
+            }
+            
+            const trendData = {
+                labels: last6Months,
+                datasets: [{
+                    label: 'Monthly Revenue ($)',
+                    data: [
+                        Math.round(Math.random() * 10000 + 20000),
+                        Math.round(Math.random() * 10000 + 20000),
+                        Math.round(Math.random() * 10000 + 20000),
+                        Math.round(Math.random() * 10000 + 20000),
+                        Math.round(Math.random() * 10000 + 20000),
+                        {{ total_revenue }}
+                    ],
+                    backgroundColor: 'rgba(13, 202, 240, 0.2)',
+                    borderColor: 'rgba(13, 202, 240, 1)',
+                    borderWidth: 2
+                }]
+            };
+            
+            const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
+            new Chart(trendCtx, {
+                type: 'bar',
+                data: trendData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Revenue ($)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+        {% elif report_type == 'bookings' %}
+            // Booking Status Chart
+            const statusLabels = [{% for status, count in bookings_data.by_status %}'{{ status|capitalize }}',{% endfor %}];
+            const statusCounts = [{% for status, count in bookings_data.by_status %}{{ count }},{% endfor %}];
+            
+            const statusData = {
+                labels: statusLabels,
+                datasets: [{
+                    label: 'Bookings by Status',
+                    data: statusCounts,
+                    backgroundColor: [
+                        'rgba(255, 193, 7, 0.7)',  // Pending
+                        'rgba(25, 135, 84, 0.7)',  // Confirmed
+                        'rgba(13, 202, 240, 0.7)', // Checked-in
+                        'rgba(108, 117, 125, 0.7)', // Checked-out
+                        'rgba(220, 53, 69, 0.7)'   // Cancelled
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            const statusCtx = document.getElementById('bookingStatusChart').getContext('2d');
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: statusData,
+                options: {
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Room Type Booking Chart
+            const roomTypeLabels = [{% for room_type, count in bookings_data.by_type %}'{{ room_type }}',{% endfor %}];
+            const roomTypeCounts = [{% for room_type, count in bookings_data.by_type %}{{ count }},{% endfor %}];
+            
+            const roomTypeData = {
+                labels: roomTypeLabels,
+                datasets: [{
+                    label: 'Bookings by Room Type',
+                    data: roomTypeCounts,
+                    backgroundColor: [
+                        'rgba(13, 110, 253, 0.7)',
+                        'rgba(25, 135, 84, 0.7)',
+                        'rgba(255, 193, 7, 0.7)',
+                        'rgba(220, 53, 69, 0.7)',
+                        'rgba(13, 202, 240, 0.7)',
+                        'rgba(108, 117, 125, 0.7)'
+                    ],
+                    borderWidth: 1
+                }]
+            };
+            
+            const roomTypeCtx = document.getElementById('bookingRoomTypeChart').getContext('2d');
+            new Chart(roomTypeCtx, {
+                type: 'bar',
+                data: roomTypeData,
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        {% endif %}
+    });
+</script>
+{% endblock %}

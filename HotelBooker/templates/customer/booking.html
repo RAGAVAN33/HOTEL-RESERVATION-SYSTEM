@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+{% block title %}Book Room - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.room_search') }}">Rooms</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.room_detail', room_id=room.id) }}">{{ room.room_type }} Room #{{ room.room_number }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Book Room</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Complete Your Booking</h3>
+                </div>
+                <div class="card-body">
+                    <form action="{{ url_for('customer.booking', room_id=room.id) }}" method="post">
+                        <h4 class="mb-3">Guest Information</h4>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Guest Name</label>
+                                <input type="text" class="form-control" id="name" value="{{ current_user.name }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" value="{{ current_user.email }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" value="{{ current_user.phone or '' }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="guests" class="form-label">Number of Guests</label>
+                                <input type="number" class="form-control" id="guests" value="{{ guests }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mb-3 mt-4">Booking Details</h4>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="check_in" class="form-label">Check-in Date</label>
+                                <input type="text" class="form-control" id="check_in" value="{{ check_in }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="check_out" class="form-label">Check-out Date</label>
+                                <input type="text" class="form-control" id="check_out" value="{{ check_out }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="room_type" class="form-label">Room Type</label>
+                                <input type="text" class="form-control" id="room_type" value="{{ room.room_type }}" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="room_number" class="form-label">Room Number</label>
+                                <input type="text" class="form-control" id="room_number" value="{{ room.room_number }}" readonly>
+                            </div>
+                        </div>
+                        
+                        <h4 class="mb-3 mt-4">Payment Information</h4>
+                        
+                        <div class="mb-3">
+                            <label for="payment_method" class="form-label">Payment Method</label>
+                            <select class="form-select" id="payment_method" name="payment_method" required>
+                                <option value="credit_card">Credit Card</option>
+                                <option value="debit_card">Debit Card</option>
+                                <option value="paypal">PayPal</option>
+                            </select>
+                        </div>
+                        
+                        <div id="credit_card_details">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="card_number" class="form-label">Card Number</label>
+                                    <input type="text" class="form-control" id="card_number" placeholder="**** **** **** ****" value="**** **** **** 1234" disabled>
+                                    <small class="text-muted">This is a demo, no actual payment will be processed</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="expiry" class="form-label">Expiry Date</label>
+                                    <input type="text" class="form-control" id="expiry" placeholder="MM/YY" value="12/25" disabled>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="cvv" class="form-label">CVV</label>
+                                    <input type="text" class="form-control" id="cvv" placeholder="***" value="***" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">terms and conditions</a>
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-credit-card me-2"></i>Complete Booking - ${{ total_price }}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card sticky-top" style="top: 20px">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Booking Summary</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ room.room_type }} Room #{{ room.room_number }}</h5>
+                    
+                    <div class="mb-3">
+                        <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                        <strong>{{ check_in }}</strong> to <strong>{{ check_out }}</strong>
+                        <div class="text-muted ms-4">{{ nights }} night{% if nights > 1 %}s{% endif %}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <i class="fas fa-user me-2 text-primary"></i>
+                        <strong>{{ guests }}</strong> guest{% if guests > 1 %}s{% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Room Rate:</span>
+                        <span>${{ room.price_per_night }} × {{ nights }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Subtotal:</span>
+                        <span>${{ room.price_per_night * nights }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Taxes & Fees (10%):</span>
+                        <span>${{ (room.price_per_night * nights * 0.1)|round(2) }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fw-bold">Total:</span>
+                        <span class="fw-bold fs-5">${{ total_price }}</span>
+                    </div>
+                    
+                    <div class="alert alert-info mb-0" role="alert">
+                        <small>
+                            <i class="fas fa-info-circle me-2"></i>
+                            Free cancellation up to 24 hours before check-in. Cancellations made within 24 hours of check-in are non-refundable.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms and Conditions Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h5>Booking Terms</h5>
+                <p>By completing this booking, you agree to the following terms and conditions:</p>
+                <ul>
+                    <li>Check-in time is 3:00 PM and check-out time is 11:00 AM.</li>
+                    <li>A valid photo ID is required at check-in.</li>
+                    <li>Free cancellation up to 24 hours before check-in.</li>
+                    <li>Cancellations made within 24 hours of check-in are non-refundable.</li>
+                    <li>Smoking is not permitted in any of our rooms.</li>
+                    <li>Pets are not allowed unless specified as a pet-friendly room.</li>
+                    <li>The hotel reserves the right to cancel reservations with full refund if the room becomes unavailable due to circumstances beyond our control.</li>
+                </ul>
+                
+                <h5>Payment Policy</h5>
+                <p>We accept credit cards, debit cards, and PayPal for payment. Your card will not be charged until check-in unless otherwise stated.</p>
+                
+                <h5>Cancellation Policy</h5>
+                <p>Free cancellation is available up to 24 hours before your scheduled check-in date. Cancellations made within 24 hours of check-in are non-refundable.</p>
+                
+                <h5>Privacy Policy</h5>
+                <p>We respect your privacy and will only use your personal information for the purpose of managing your reservation and providing our services.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

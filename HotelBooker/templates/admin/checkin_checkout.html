@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block title %}Check-in/Check-out Management - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-clipboard-check me-2"></i>Check-in / Check-out Management</h2>
+            <p class="text-muted">Today: {{ today.strftime('%Y-%m-%d') }}</p>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Check-ins Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Today's Check-ins</h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if checkins %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Guest</th>
+                                        <th>Room</th>
+                                        <th>Guests</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in checkins %}
+                                        <tr>
+                                            <td>#{{ reservation.id }}</td>
+                                            <td>
+                                                <div>{{ reservation.customer.name }}</div>
+                                                <small class="text-muted">{{ reservation.customer.email }}</small>
+                                            </td>
+                                            <td>
+                                                {{ reservation.room.room_type }}<br>
+                                                <strong>#{{ reservation.room.room_number }}</strong>
+                                            </td>
+                                            <td>{{ reservation.num_guests }}</td>
+                                            <td>
+                                                <form action="{{ url_for('admin.checkin', reservation_id=reservation.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-success btn-sm w-100">
+                                                        <i class="fas fa-sign-in-alt me-1"></i> Check-in
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <i class="fas fa-bed fa-3x mb-3 text-muted"></i>
+                            <p class="mb-0">No check-ins scheduled for today.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Showing all reservations with check-in date: {{ today.strftime('%Y-%m-%d') }}</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Check-outs Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow h-100">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Today's Check-outs</h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if checkouts %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Guest</th>
+                                        <th>Room</th>
+                                        <th>Nights</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in checkouts %}
+                                        <tr>
+                                            <td>#{{ reservation.id }}</td>
+                                            <td>
+                                                <div>{{ reservation.customer.name }}</div>
+                                                <small class="text-muted">{{ reservation.customer.email }}</small>
+                                            </td>
+                                            <td>
+                                                {{ reservation.room.room_type }}<br>
+                                                <strong>#{{ reservation.room.room_number }}</strong>
+                                            </td>
+                                            <td>{{ (reservation.check_out_date - reservation.check_in_date).days }}</td>
+                                            <td>
+                                                <form action="{{ url_for('admin.checkout', reservation_id=reservation.id) }}" method="post">
+                                                    <button type="submit" class="btn btn-info btn-sm w-100">
+                                                        <i class="fas fa-sign-out-alt me-1"></i> Check-out
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <i class="fas fa-door-open fa-3x mb-3 text-muted"></i>
+                            <p class="mb-0">No check-outs scheduled for today.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Showing all reservations with check-out date: {{ today.strftime('%Y-%m-%d') }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Room Status Overview -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Room Status Overview</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Available</h5>
+                                    <h2 class="mb-0">{{ rooms|selectattr('status', 'equalto', 'available')|list|length }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-danger text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Occupied</h5>
+                                    <h2 class="mb-0">{{ rooms|selectattr('status', 'equalto', 'occupied')|list|length }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Maintenance</h5>
+                                    <h2 class="mb-0">{{ rooms|selectattr('status', 'equalto', 'maintenance')|list|length }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-sm-6 mb-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Cleaning</h5>
+                                    <h2 class="mb-0">{{ rooms|selectattr('status', 'equalto', 'cleaning')|list|length }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-12">
+                            <h5 class="mb-3">Rooms Requiring Attention</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Room #</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for room in rooms|selectattr('status', 'in', ['cleaning', 'maintenance'])|list %}
+                                            <tr>
+                                                <td>{{ room.room_number }}</td>
+                                                <td>{{ room.room_type }}</td>
+                                                <td>
+                                                    {% if room.status == 'cleaning' %}
+                                                        <span class="badge bg-info">Cleaning</span>
+                                                    {% elif room.status == 'maintenance' %}
+                                                        <span class="badge bg-warning text-dark">Maintenance</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <button type="button" class="btn btn-sm btn-outline-success" 
+                                                            onclick="updateRoomStatus({{ room.id }}, 'available')"
+                                                            {% if room.status != 'cleaning' %}disabled{% endif %}>
+                                                        Mark Available
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="4" class="text-center">No rooms requiring attention</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Check-in/Check-out Procedures -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Check-in Procedure</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li>Verify guest identity with government-issued ID</li>
+                        <li>Confirm reservation details with guest</li>
+                        <li>Process payment if not already completed</li>
+                        <li>Click the "Check-in" button to update system</li>
+                        <li>Provide room key and hotel information</li>
+                        <li>Offer assistance with luggage if needed</li>
+                        <li>Inform guest about amenities and operating hours</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Check-out Procedure</h5>
+                </div>
+                <div class="card-body">
+                    <ol class="mb-0">
+                        <li>Collect room key from guest</li>
+                        <li>Review any additional charges with guest</li>
+                        <li>Process final payment if needed</li>
+                        <li>Click the "Check-out" button to update system</li>
+                        <li>Provide receipt to guest</li>
+                        <li>Inform housekeeping to clean room</li>
+                        <li>Thank guest and ask for feedback</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Update Room Status Function -->
+<script>
+    function updateRoomStatus(roomId, status) {
+        if (confirm('Are you sure you want to mark this room as available?')) {
+            // This would normally make an AJAX request to update the room status
+            // For this demo, we'll use a simple form submission
+            let form = document.createElement('form');
+            form.method = 'POST';
+            form.action = "{{ url_for('admin.edit_room', room_id=0) }}".replace('0', roomId);
+            
+            let roomNumberInput = document.createElement('input');
+            let roomTypeInput = document.createElement('input');
+            let priceInput = document.createElement('input');
+            let capacityInput = document.createElement('input');
+            let descriptionInput = document.createElement('input');
+            let statusInput = document.createElement('input');
+            
+            roomNumberInput.name = 'room_number';
+            roomTypeInput.name = 'room_type';
+            priceInput.name = 'price';
+            capacityInput.name = 'capacity';
+            descriptionInput.name = 'description';
+            statusInput.name = 'status';
+            
+            roomNumberInput.value = document.getElementById('roomNumber' + roomId)?.value || '';
+            roomTypeInput.value = document.getElementById('roomType' + roomId)?.value || '';
+            priceInput.value = document.getElementById('roomPrice' + roomId)?.value || '0';
+            capacityInput.value = document.getElementById('roomCapacity' + roomId)?.value || '1';
+            descriptionInput.value = document.getElementById('roomDescription' + roomId)?.value || '';
+            statusInput.value = status;
+            
+            form.appendChild(roomNumberInput);
+            form.appendChild(roomTypeInput);
+            form.appendChild(priceInput);
+            form.appendChild(capacityInput);
+            form.appendChild(descriptionInput);
+            form.appendChild(statusInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+</script>
+{% endblock %}

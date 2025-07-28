@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+
+{% block title %}Reservation Management - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2><i class="fas fa-calendar-alt me-2"></i>Reservation Management</h2>
+        </div>
+    </div>
+    
+    <!-- Reservation Filtering -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form action="{{ url_for('admin.reservation_management') }}" method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Reservation Status</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All Statuses</option>
+                                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                                <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                                <option value="checked-in" {% if status_filter == 'checked-in' %}selected{% endif %}>Checked-in</option>
+                                <option value="checked-out" {% if status_filter == 'checked-out' %}selected{% endif %}>Checked-out</option>
+                                <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="sort" class="form-label">Sort By</label>
+                            <select class="form-select" id="sort" name="sort">
+                                <option value="check_in" {% if sort_by == 'check_in' %}selected{% endif %}>Check-in Date</option>
+                                <option value="created" {% if sort_by == 'created' %}selected{% endif %}>Creation Date</option>
+                                <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="date_range" class="form-label">Date Range</label>
+                            <select class="form-select" id="date_range" name="date_range">
+                                <option value="all">All Dates</option>
+                                <option value="upcoming">Upcoming</option>
+                                <option value="past">Past</option>
+                                <option value="today">Today</option>
+                                <option value="this_week">This Week</option>
+                                <option value="this_month">This Month</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-2"></i>Apply Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reservation Listings -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Reservations</h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if reservations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Guest</th>
+                                        <th>Room</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in reservations %}
+                                        <tr>
+                                            <td>#{{ reservation.id }}</td>
+                                            <td>{{ reservation.customer.name }}</td>
+                                            <td>{{ reservation.room.room_type }} #{{ reservation.room.room_number }}</td>
+                                            <td>{{ reservation.check_in_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>{{ reservation.check_out_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>
+                                                {% if reservation.status == 'pending' %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% elif reservation.status == 'confirmed' %}
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                {% elif reservation.status == 'checked-in' %}
+                                                    <span class="badge bg-info">Checked-in</span>
+                                                {% elif reservation.status == 'checked-out' %}
+                                                    <span class="badge bg-secondary">Checked-out</span>
+                                                {% elif reservation.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>${{ reservation.total_price }}</td>
+                                            <td>{{ reservation.created_at.strftime('%Y-%m-%d') }}</td>
+                                            <td>
+                                                <a href="{{ url_for('admin.reservation_detail', reservation_id=reservation.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                
+                                                {% if reservation.status == 'confirmed' and reservation.check_in_date.strftime('%Y-%m-%d') == now.strftime('%Y-%m-%d') %}
+                                                    <form action="{{ url_for('admin.checkin', reservation_id=reservation.id) }}" method="post" class="d-inline">
+                                                        <button type="submit" class="btn btn-sm btn-outline-success" title="Check-in">
+                                                            <i class="fas fa-sign-in-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                                
+                                                {% if reservation.status == 'checked-in' and reservation.check_out_date.strftime('%Y-%m-%d') == now.strftime('%Y-%m-%d') %}
+                                                    <form action="{{ url_for('admin.checkout', reservation_id=reservation.id) }}" method="post" class="d-inline">
+                                                        <button type="submit" class="btn btn-sm btn-outline-info" title="Check-out">
+                                                            <i class="fas fa-sign-out-alt"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <p class="mb-0">No reservations found matching the selected filters.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reservation Stats -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Reservation Statistics</h5>
+                    <div class="mt-3">
+                        <canvas id="reservationStatsChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Today's Activity</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Check-ins Today
+                            <span class="badge bg-primary rounded-pill">{{ reservations|selectattr('check_in_date', 'equalto', now)|list|length }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Check-outs Today
+                            <span class="badge bg-info rounded-pill">{{ reservations|selectattr('check_out_date', 'equalto', now)|list|length }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            New Reservations
+                            <span class="badge bg-success rounded-pill">{{ reservations|selectattr('created_at', 'greaterthanequal', now.replace(hour=0, minute=0, second=0))|list|length }}</span>
+                        </li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{{ url_for('admin.checkin_checkout') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-clipboard-check me-2"></i>Manage Check-ins/outs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Quick Actions</h5>
+                    <div class="d-grid gap-2 mt-3">
+                        <a href="{{ url_for('admin.reports', type='occupancy') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-pie me-2"></i>Occupancy Report
+                        </a>
+                        <a href="{{ url_for('admin.reports', type='revenue') }}" class="btn btn-outline-success">
+                            <i class="fas fa-dollar-sign me-2"></i>Revenue Report
+                        </a>
+                        <a href="{{ url_for('admin.reports', type='bookings') }}" class="btn btn-outline-info">
+                            <i class="fas fa-chart-line me-2"></i>Booking Statistics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Reservation Stats Chart
+        const reservationStats = {
+            labels: ['Pending', 'Confirmed', 'Checked-in', 'Checked-out', 'Cancelled'],
+            datasets: [{
+                data: [
+                    {{ reservations|selectattr('status', 'equalto', 'pending')|list|length }},
+                    {{ reservations|selectattr('status', 'equalto', 'confirmed')|list|length }},
+                    {{ reservations|selectattr('status', 'equalto', 'checked-in')|list|length }},
+                    {{ reservations|selectattr('status', 'equalto', 'checked-out')|list|length }},
+                    {{ reservations|selectattr('status', 'equalto', 'cancelled')|list|length }}
+                ],
+                backgroundColor: [
+                    'rgba(255, 193, 7, 0.8)',  // Warning - Pending
+                    'rgba(40, 167, 69, 0.8)',  // Success - Confirmed
+                    'rgba(23, 162, 184, 0.8)', // Info - Checked-in
+                    'rgba(108, 117, 125, 0.8)', // Secondary - Checked-out
+                    'rgba(220, 53, 69, 0.8)'   // Danger - Cancelled
+                ],
+                borderColor: [
+                    'rgba(255, 193, 7, 1)',
+                    'rgba(40, 167, 69, 1)',
+                    'rgba(23, 162, 184, 1)',
+                    'rgba(108, 117, 125, 1)',
+                    'rgba(220, 53, 69, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+        
+        const ctx = document.getElementById('reservationStatsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: reservationStats,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    }
+                }
+            }
+        });
+        
+        // Date range filter
+        const dateRangeSelect = document.getElementById('date_range');
+        dateRangeSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                // Future implementation: Show custom date picker
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Available Rooms - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">Available Rooms</h2>
+            
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form action="{{ url_for('customer.room_search') }}" method="post" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="check_in" class="form-label">Check-in Date</label>
+                            <input type="text" class="form-control datepicker" id="check_in" name="check_in" value="{{ search.check_in }}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="check_out" class="form-label">Check-out Date</label>
+                            <input type="text" class="form-control datepicker" id="check_out" name="check_out" value="{{ search.check_out }}" required>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="guests" class="form-label">Guests</label>
+                            <select class="form-select" id="guests" name="guests" required>
+                                {% for i in range(1, 6) %}
+                                <option value="{{ i }}" {% if search.guests|int == i %}selected{% endif %}>{{ i }} Guest{% if i > 1 %}s{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="room_type" class="form-label">Room Type</label>
+                            <select class="form-select" id="room_type" name="room_type">
+                                <option value="">Any Type</option>
+                                {% for type in room_types %}
+                                <option value="{{ type }}" {% if search.room_type == type %}selected{% endif %}>{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Showing available rooms for {{ nights }} night{% if nights > 1 %}s{% endif %} 
+                ({{ search.check_in }} to {{ search.check_out }})
+            </div>
+        </div>
+    </div>
+    
+    {% if rooms %}
+        <div class="row">
+            {% for room in rooms %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">{{ room.room_type }} Room</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="badge bg-secondary">Room #{{ room.room_number }}</span>
+                                <span class="text-primary fw-bold">${{ room.price_per_night }} / night</span>
+                            </div>
+                            <p class="card-text">{{ room.description or 'A comfortable room with all the essential amenities you need for a pleasant stay.' }}</p>
+                            <ul class="list-group list-group-flush mb-3">
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span><i class="fas fa-user me-2"></i>Capacity</span>
+                                    <span>{{ room.capacity }} Guest{% if room.capacity > 1 %}s{% endif %}</span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between">
+                                    <span><i class="fas fa-moon me-2"></i>{{ nights }} Night{% if nights > 1 %}s{% endif %}</span>
+                                    <span>${{ (room.price_per_night * nights)|round(2) }}</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{ url_for('customer.room_detail', room_id=room.id) }}" class="btn btn-outline-primary w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No rooms available for the selected dates and criteria. Please try different dates or adjust your search.
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/datepicker.js') }}"></script>
+<script src="{{ url_for('static', filename='js/room_search.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,144 @@
+/* Custom styles for Hotel Reservation System - Light Theme */
+
+/* Override any styles from the Bootstrap theme as needed */
+:root {
+  --bs-body-color: #212529;
+  --bs-body-bg: #ffffff;
+  --bs-primary: #0d6efd;
+  --bs-primary-rgb: 13, 110, 253;
+}
+
+/* Custom styles for room cards */
+.room-card .card-header {
+  transition: all 0.3s ease;
+}
+
+.room-card:hover .card-header {
+  transform: translateY(-3px);
+}
+
+/* Custom reservation status badges */
+.badge {
+  padding: 0.5em 0.8em;
+  font-weight: 500;
+}
+
+/* Additional utility classes */
+.text-white-50 {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.text-dark-50 {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Dashboard card styles */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-stats .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Room illustrations and SVG styles */
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Better spacing for forms */
+.form-label {
+  margin-bottom: 0.3rem;
+  font-weight: 500;
+}
+
+.form-control, .form-select {
+  margin-bottom: 0.5rem;
+}
+
+/* Sticky booking summary on room detail page */
+.sticky-top {
+  top: 1.5rem;
+  z-index: 1000;
+}
+
+/* Print styles */
+@media print {
+  .navbar, .footer, .btn, .no-print {
+    display: none !important;
+  }
+  
+  .card {
+    border: 1px solid #ddd !important;
+    box-shadow: none !important;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa !important;
+    color: #212529 !important;
+  }
+  
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+}
+
+/* Date picker custom styles */
+.flatpickr-calendar {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.flatpickr-day.selected {
+  background: var(--bs-primary) !important;
+  border-color: var(--bs-primary) !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .display-4 {
+    font-size: 2.5rem;
+  }
+  
+  .hero-section {
+    text-align: center;
+  }
+}
+
+/* Timeline styling for reservation details */
+.reservation-timeline .list-group-item {
+  border-left: 3px solid var(--bs-primary);
+  padding-left: 1rem;
+}
+
+/* Improve table readability */
+.table-responsive {
+  margin-bottom: 1rem;
+}
+
+/* Custom checkbox styling */
+.form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+/* Improve modal styling */
+.modal-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.modal-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Add animation to alerts */
+.alert {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

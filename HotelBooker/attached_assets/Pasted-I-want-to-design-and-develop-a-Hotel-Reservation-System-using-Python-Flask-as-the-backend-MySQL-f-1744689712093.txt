@@ -1,0 +1,97 @@
+I want to design and develop a Hotel Reservation System using Python (Flask) as the backend, MySQL for the database, and HTML, CSS, Bootstrap, and JavaScript for the frontend.
+
+🔧 Project Requirements:
+The system should provide functionality for customers to:
+
+Browse room availability based on date range and room type
+
+Book rooms by selecting room type, dates, and number of guests
+
+View and manage existing reservations
+
+Track stay duration, check-in/check-out dates
+
+See room pricing and receive a final billing amount
+
+Process payments (simulate with status field or integrate a payment gateway if needed)
+
+The system should provide functionality for administrators to:
+
+Manage room inventory (add/edit/delete rooms, update room status or pricing)
+
+Manage check-ins and check-outs
+
+View and manage all customer bookings
+
+Generate reports on:
+
+Occupancy rates (daily/weekly/monthly)
+
+Booking statistics (e.g., peak seasons)
+
+Revenue (filtered by time/date)
+
+The MySQL database schema should include tables such as:
+
+Rooms (room_id, room_number, type, price_per_night, status)
+
+Customers (customer_id, name, email, phone)
+
+Reservations (reservation_id, customer_id, room_id, check_in_date, check_out_date, num_guests, total_price, payment_status)
+
+Admins (admin_id, name, email, password_hash)
+
+Payments (payment_id, reservation_id, payment_date, amount, payment_method, payment_status)
+
+The Flask backend should support:
+
+Viewing available rooms by date range and type
+
+Creating, updating, and canceling reservations
+
+Performing check-in and check-out actions
+
+Generating admin-level reports
+
+Basic payment simulation or integration
+
+The frontend UI should include:
+
+Customer views: room listings, booking forms, reservation status
+
+Admin dashboard: overview cards (occupancy, revenue), room and booking management
+
+Forms with Bootstrap styling and JavaScript date pickers
+
+Organize the application using:
+
+pgsql
+Copy
+Edit
+hotel-reservation-system/
+├── app.py
+├── config.py
+├── templates/
+├── static/
+├── utils/
+├── models/schema.sql
+└── requirements.txt
+Use mysql-connector-python (or SQLAlchemy) for connecting Flask with MySQL and maintain modular, readable code.
+
+🔐 Optional Features:
+User authentication system (Flask-Login or sessions) for customers and admin
+
+Email confirmation for bookings (optional)
+
+Payment gateway simulation (status update, mock transaction IDs)
+
+📦 Deliverables:
+SQL database schema with all foreign keys and constraints
+
+Flask app with full backend routing for customers and admins
+
+Frontend templates for booking flow and admin panel
+
+Optional login/auth system with role-based access
+
+Reporting modules for occupancy and revenue

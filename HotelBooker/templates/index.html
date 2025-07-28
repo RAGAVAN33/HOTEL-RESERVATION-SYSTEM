@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+
+{% block title %}Hotel Reservation System - Home{% endblock %}
+
+{% block content %}
+<div class="hero-section py-5 bg-dark text-white rounded mb-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">Find Your Perfect Stay</h1>
+                <p class="lead mb-4">Discover comfort, luxury, and convenience at our hotel. Book your stay with us today!</p>
+                <a href="{{ url_for('customer.room_search') }}" class="btn btn-primary btn-lg">Browse Rooms</a>
+            </div>
+            <div class="col-lg-6 text-center">
+                <svg class="img-fluid" width="500" height="300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400">
+                    <!-- Hotel illustration -->
+                    <rect x="100" y="100" width="400" height="250" fill="#375a7f" rx="5" />
+                    <rect x="150" y="150" width="80" height="80" fill="#222" stroke="#444" stroke-width="2" />
+                    <rect x="260" y="150" width="80" height="80" fill="#222" stroke="#444" stroke-width="2" />
+                    <rect x="370" y="150" width="80" height="80" fill="#222" stroke="#444" stroke-width="2" />
+                    <rect x="180" y="250" width="240" height="100" fill="#222" stroke="#444" stroke-width="2" />
+                    <rect x="230" y="290" width="140" height="60" fill="#375a7f" />
+                    <text x="300" y="325" font-family="Arial" font-size="20" fill="white" text-anchor="middle">HOTEL</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">Search Available Rooms</h3>
+                    <form action="{{ url_for('customer.room_search') }}" method="post">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="check_in" class="form-label">Check-in Date</label>
+                                <input type="text" class="form-control datepicker" id="check_in" name="check_in" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="check_out" class="form-label">Check-out Date</label>
+                                <input type="text" class="form-control datepicker" id="check_out" name="check_out" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="guests" class="form-label">Guests</label>
+                                <select class="form-select" id="guests" name="guests" required>
+                                    <option value="1">1 Guest</option>
+                                    <option value="2">2 Guests</option>
+                                    <option value="3">3 Guests</option>
+                                    <option value="4">4 Guests</option>
+                                    <option value="5">5 Guests</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="room_type" class="form-label">Room Type</label>
+                                <select class="form-select" id="room_type" name="room_type">
+                                    <option value="">Any Type</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Double">Double</option>
+                                    <option value="Deluxe">Deluxe</option>
+                                    <option value="Family">Family</option>
+                                    <option value="Suite">Suite</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end justify-content-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i>Find Rooms
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h2>Our Room Types</h2>
+            <p class="lead">Choose the perfect room for your stay</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-bed fa-3x mb-3 text-primary"></i>
+                    <h4 class="card-title">Single Room</h4>
+                    <p class="card-text">A cozy room with a single bed, perfect for solo travelers.</p>
+                    <p class="text-primary fw-bold">From $80 / night</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('customer.room_search') }}?room_type=Single" class="btn btn-outline-primary w-100">View Single Rooms</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-bed fa-3x mb-3 text-primary"></i>
+                    <h4 class="card-title">Double Room</h4>
+                    <p class="card-text">Comfortable room with a queen-size bed, ideal for couples.</p>
+                    <p class="text-primary fw-bold">From $120 / night</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('customer.room_search') }}?room_type=Double" class="btn btn-outline-primary w-100">View Double Rooms</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <i class="fas fa-hotel fa-3x mb-3 text-primary"></i>
+                    <h4 class="card-title">Suite</h4>
+                    <p class="card-text">Luxurious suite with separate living area and premium amenities.</p>
+                    <p class="text-primary fw-bold">From $250 / night</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ url_for('customer.room_search') }}?room_type=Suite" class="btn btn-outline-primary w-100">View Suites</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h2>Why Choose Us</h2>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="text-center">
+                <i class="fas fa-map-marker-alt fa-3x mb-3 text-primary"></i>
+                <h5>Prime Location</h5>
+                <p>Located in the heart of the city with easy access to attractions.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="text-center">
+                <i class="fas fa-wifi fa-3x mb-3 text-primary"></i>
+                <h5>Free Wi-Fi</h5>
+                <p>High-speed internet access available throughout the property.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="text-center">
+                <i class="fas fa-concierge-bell fa-3x mb-3 text-primary"></i>
+                <h5>24/7 Service</h5>
+                <p>Our staff is available round the clock to assist you.</p>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="text-center">
+                <i class="fas fa-utensils fa-3x mb-3 text-primary"></i>
+                <h5>Restaurant</h5>
+                <p>On-site restaurant serving delicious local and international cuisine.</p>
+            </div>
+        </div>
+    </div>
+
+    {% if not current_user.is_authenticated %}
+    <div class="row">
+        <div class="col-12">
+            <div class="card bg-primary text-white">
+                <div class="card-body p-4 text-center">
+                    <h3 class="mb-3">Already have a reservation?</h3>
+                    <p class="lead mb-4">Log in to manage your booking or make a new reservation.</p>
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-light me-2">Log In</a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light">Register</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/datepicker.js') }}"></script>
+{% endblock %}

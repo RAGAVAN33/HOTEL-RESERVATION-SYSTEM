@@ -1,0 +1,284 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard</h2>
+                <div>
+                    <a href="{{ url_for('admin.reports') }}" class="btn btn-outline-primary me-2">
+                        <i class="fas fa-chart-bar me-2"></i>View Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Dashboard Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Today's Check-ins</h6>
+                            <h2 class="card-text mb-0">{{ checkins_today }}</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-sign-in-alt fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.checkin_checkout') }}" class="btn btn-sm btn-outline-light mt-3">
+                        Manage Check-ins
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Today's Check-outs</h6>
+                            <h2 class="card-text mb-0">{{ checkouts_today }}</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-sign-out-alt fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.checkin_checkout') }}" class="btn btn-sm btn-outline-light mt-3">
+                        Manage Check-outs
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-white-50">Occupancy Rate</h6>
+                            <h2 class="card-text mb-0">{{ occupancy_rate }}%</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-bed fa-3x text-white-50"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <span class="text-white-50">{{ occupied_rooms }} of {{ total_rooms }} rooms occupied</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 bg-warning text-dark">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title text-dark-50">Monthly Revenue</h6>
+                            <h2 class="card-text mb-0">${{ monthly_revenue }}</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-dollar-sign fa-3x text-dark-50"></i>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('admin.reports', type='revenue') }}" class="btn btn-sm btn-outline-dark mt-3">
+                        View Revenue Reports
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Upcoming Reservations -->
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Upcoming Reservations (Next 7 Days)</h4>
+                </div>
+                <div class="card-body p-0">
+                    {% if upcoming_reservations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Guest</th>
+                                        <th>Room</th>
+                                        <th>Check-in</th>
+                                        <th>Nights</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in upcoming_reservations %}
+                                        <tr>
+                                            <td>#{{ reservation.id }}</td>
+                                            <td>{{ reservation.customer.name }}</td>
+                                            <td>{{ reservation.room.room_type }} #{{ reservation.room.room_number }}</td>
+                                            <td>{{ reservation.check_in_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>{{ (reservation.check_out_date - reservation.check_in_date).days }}</td>
+                                            <td>
+                                                {% if reservation.status == 'pending' %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% elif reservation.status == 'confirmed' %}
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                {% elif reservation.status == 'checked-in' %}
+                                                    <span class="badge bg-info">Checked-in</span>
+                                                {% elif reservation.status == 'checked-out' %}
+                                                    <span class="badge bg-secondary">Checked-out</span>
+                                                {% elif reservation.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('admin.reservation_detail', reservation_id=reservation.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="p-4 text-center">
+                            <p class="mb-0">No upcoming reservations for the next 7 days.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer text-end">
+                    <a href="{{ url_for('admin.reservation_management') }}" class="btn btn-primary">
+                        View All Reservations
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Quick Stats</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Active Reservations
+                            <span class="badge bg-primary rounded-pill">{{ active_reservations }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Available Rooms
+                            <span class="badge bg-success rounded-pill">{{ total_rooms - occupied_rooms }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            Occupancy Rate
+                            <span class="badge bg-info rounded-pill">{{ occupancy_rate }}%</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Quick Links</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.room_management') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-door-open me-2"></i>Manage Rooms
+                        </a>
+                        <a href="{{ url_for('admin.checkin_checkout') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-clipboard-check me-2"></i>Check-in / Check-out
+                        </a>
+                        <a href="{{ url_for('admin.reports') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-line me-2"></i>View Reports
+                        </a>
+                        <a href="{{ url_for('customer.index') }}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home me-2"></i>View Customer Site
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Occupancy Trend Chart -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Occupancy Trend (Last 7 Days)</h4>
+                </div>
+                <div class="card-body">
+                    <canvas id="occupancyChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+<script>
+    // Sample data for the occupancy chart
+    document.addEventListener('DOMContentLoaded', function() {
+        const occupancyData = {
+            labels: ['7 days ago', '6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Today'],
+            datasets: [{
+                label: 'Occupancy Rate (%)',
+                data: [
+                    Math.round(Math.random() * 30) + 50,
+                    Math.round(Math.random() * 30) + 50,
+                    Math.round(Math.random() * 30) + 50,
+                    Math.round(Math.random() * 30) + 50,
+                    Math.round(Math.random() * 30) + 50,
+                    Math.round(Math.random() * 30) + 50,
+                    {{ occupancy_rate }}
+                ],
+                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 2,
+                tension: 0.1
+            }]
+        };
+        
+        const ctx = document.getElementById('occupancyChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: occupancyData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Occupancy Rate (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.raw + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

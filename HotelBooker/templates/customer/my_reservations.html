@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}My Reservations - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <h2>My Reservations</h2>
+        </div>
+    </div>
+    
+    {% if reservations %}
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Your Bookings</h4>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Reservation ID</th>
+                                        <th>Room</th>
+                                        <th>Check-in</th>
+                                        <th>Check-out</th>
+                                        <th>Status</th>
+                                        <th>Total</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for reservation in reservations %}
+                                        <tr>
+                                            <td>#{{ reservation.id }}</td>
+                                            <td>{{ reservation.room.room_type }} #{{ reservation.room.room_number }}</td>
+                                            <td>{{ reservation.check_in_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>{{ reservation.check_out_date.strftime('%Y-%m-%d') }}</td>
+                                            <td>
+                                                {% if reservation.status == 'pending' %}
+                                                    <span class="badge bg-warning text-dark">Pending</span>
+                                                {% elif reservation.status == 'confirmed' %}
+                                                    <span class="badge bg-success">Confirmed</span>
+                                                {% elif reservation.status == 'checked-in' %}
+                                                    <span class="badge bg-info">Checked-in</span>
+                                                {% elif reservation.status == 'checked-out' %}
+                                                    <span class="badge bg-secondary">Checked-out</span>
+                                                {% elif reservation.status == 'cancelled' %}
+                                                    <span class="badge bg-danger">Cancelled</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>${{ reservation.total_price }}</td>
+                                            <td>
+                                                <a href="{{ url_for('customer.reservation_detail', reservation_id=reservation.id) }}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-eye"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reservation Status Legend -->
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Reservation Status Guide</h5>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div>
+                                <span class="badge bg-warning text-dark me-1">Pending</span>
+                                <small>Payment processing or confirmation pending</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-success me-1">Confirmed</span>
+                                <small>Reservation is confirmed and ready for check-in</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-info me-1">Checked-in</span>
+                                <small>You have checked into the hotel</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary me-1">Checked-out</span>
+                                <small>Your stay is completed</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-danger me-1">Cancelled</span>
+                                <small>Reservation has been cancelled</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    You don't have any reservations yet. <a href="{{ url_for('customer.room_search') }}" class="alert-link">Browse our rooms</a> to make a booking.
+                </div>
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('customer.room_search') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>Find Rooms
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

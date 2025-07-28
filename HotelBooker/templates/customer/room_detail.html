@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ room.room_type }} Room - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.room_search') }}">Rooms</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ room.room_type }} Room #{{ room.room_number }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-7 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">{{ room.room_type }} Room</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4 text-center">
+                        <svg width="100%" height="300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice">
+                            <!-- Room illustration -->
+                            <rect width="800" height="400" fill="#444" />
+                            <rect x="50" y="50" width="700" height="300" fill="#333" rx="5" />
+                            
+                            {% if room.room_type == 'Single' %}
+                                <!-- Single bed -->
+                                <rect x="150" y="100" width="250" height="180" fill="#555" rx="10" />
+                                <rect x="170" y="120" width="210" height="140" fill="#666" rx="5" />
+                                <rect x="180" y="130" width="190" height="30" fill="#777" rx="5" />
+                            {% elif room.room_type == 'Double' %}
+                                <!-- Double bed -->
+                                <rect x="150" y="100" width="350" height="180" fill="#555" rx="10" />
+                                <rect x="170" y="120" width="310" height="140" fill="#666" rx="5" />
+                                <rect x="180" y="130" width="290" height="30" fill="#777" rx="5" />
+                            {% elif room.room_type == 'Suite' or room.room_type == 'Deluxe' %}
+                                <!-- King bed + sitting area -->
+                                <rect x="100" y="100" width="350" height="180" fill="#555" rx="10" />
+                                <rect x="120" y="120" width="310" height="140" fill="#666" rx="5" />
+                                <rect x="130" y="130" width="290" height="30" fill="#777" rx="5" />
+                                
+                                <!-- Couch -->
+                                <rect x="520" y="150" width="180" height="80" fill="#626" rx="10" />
+                                <rect x="530" y="140" width="160" height="20" fill="#727" rx="5" />
+                            {% else %}
+                                <!-- Generic room layout -->
+                                <rect x="150" y="100" width="300" height="180" fill="#555" rx="10" />
+                                <rect x="170" y="120" width="260" height="140" fill="#666" rx="5" />
+                                <rect x="500" y="150" width="150" height="100" fill="#557" rx="5" />
+                            {% endif %}
+                            
+                            <!-- Window -->
+                            <rect x="600" y="80" width="120" height="100" fill="#225" stroke="#99a" stroke-width="5" />
+                            <line x1="660" y1="80" x2="660" y2="180" stroke="#99a" stroke-width="5" />
+                            <line x1="600" y1="130" x2="720" y2="130" stroke="#99a" stroke-width="5" />
+                            
+                            <!-- TV -->
+                            <rect x="320" y="50" width="160" height="10" fill="#222" />
+                            <rect x="350" y="60" width="100" height="60" fill="#111" stroke="#333" stroke-width="2" />
+                        </svg>
+                    </div>
+                    
+                    <h4 class="mb-3">Room Description</h4>
+                    <p>{{ room.description or 'A comfortable ' + room.room_type + ' room featuring all the essential amenities. The room is designed to provide a relaxing atmosphere with modern furnishings and a pleasant ambiance. Perfect for both business and leisure travelers looking for quality accommodation.' }}</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5>Room Features</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-wifi me-2 text-primary"></i> Free Wi-Fi</li>
+                                <li><i class="fas fa-tv me-2 text-primary"></i> Flat-screen TV</li>
+                                <li><i class="fas fa-snowflake me-2 text-primary"></i> Air conditioning</li>
+                                <li><i class="fas fa-coffee me-2 text-primary"></i> Coffee maker</li>
+                                {% if room.room_type in ['Suite', 'Deluxe', 'Presidential Suite'] %}
+                                <li><i class="fas fa-couch me-2 text-primary"></i> Sitting area</li>
+                                {% endif %}
+                                {% if room.room_type in ['Suite', 'Presidential Suite'] %}
+                                <li><i class="fas fa-bath me-2 text-primary"></i> Jacuzzi tub</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Room Details</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-user me-2 text-primary"></i> Max Capacity: {{ room.capacity }} guest{% if room.capacity > 1 %}s{% endif %}</li>
+                                <li><i class="fas fa-ruler-combined me-2 text-primary"></i> 
+                                    {% if room.room_type == 'Single' %}
+                                        Size: 215 sq ft
+                                    {% elif room.room_type == 'Double' %}
+                                        Size: 270 sq ft
+                                    {% elif room.room_type == 'Deluxe' %}
+                                        Size: 350 sq ft
+                                    {% elif room.room_type == 'Suite' %}
+                                        Size: 450 sq ft
+                                    {% elif room.room_type == 'Family' %}
+                                        Size: 500 sq ft
+                                    {% elif room.room_type == 'Presidential Suite' %}
+                                        Size: 850 sq ft
+                                    {% else %}
+                                        Size: 300 sq ft
+                                    {% endif %}
+                                </li>
+                                <li><i class="fas fa-bed me-2 text-primary"></i> 
+                                    {% if room.room_type == 'Single' %}
+                                        Bed: 1 Queen
+                                    {% elif room.room_type == 'Double' %}
+                                        Bed: 1 King
+                                    {% elif room.room_type == 'Deluxe' %}
+                                        Bed: 1 King
+                                    {% elif room.room_type == 'Suite' %}
+                                        Bed: 1 King
+                                    {% elif room.room_type == 'Family' %}
+                                        Beds: 2 Queens
+                                    {% elif room.room_type == 'Presidential Suite' %}
+                                        Bed: 1 King + Sofa Bed
+                                    {% else %}
+                                        Bed: 1 Queen
+                                    {% endif %}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-5 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Booking Summary</h4>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Room Type:</dt>
+                        <dd class="col-sm-7">{{ room.room_type }}</dd>
+                        
+                        <dt class="col-sm-5">Room Number:</dt>
+                        <dd class="col-sm-7">{{ room.room_number }}</dd>
+                        
+                        <dt class="col-sm-5">Check-in Date:</dt>
+                        <dd class="col-sm-7">{{ check_in }}</dd>
+                        
+                        <dt class="col-sm-5">Check-out Date:</dt>
+                        <dd class="col-sm-7">{{ check_out }}</dd>
+                        
+                        <dt class="col-sm-5">Number of Nights:</dt>
+                        <dd class="col-sm-7">{{ nights }}</dd>
+                        
+                        <dt class="col-sm-5">Number of Guests:</dt>
+                        <dd class="col-sm-7">{{ guests }}</dd>
+                    </dl>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Room Rate (per night):</span>
+                        <span>${{ room.price_per_night }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span>{{ nights }} Night{% if nights > 1 %}s{% endif %}:</span>
+                        <span>${{ room.price_per_night * nights }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <span>Taxes & Fees (10%):</span>
+                        <span>${{ (room.price_per_night * nights * 0.1)|round(2) }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center fw-bold">
+                        <span>Total Amount:</span>
+                        <span class="fs-5">${{ total_price }}</span>
+                    </div>
+                    
+                    <div class="mt-4">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('customer.booking', room_id=room.id) }}" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-bookmark me-2"></i>Book Now
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login to Book
+                            </a>
+                            <div class="text-center mt-2">
+                                <small>Don't have an account? <a href="{{ url_for('auth.register') }}">Register now</a></small>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title">Cancellation Policy</h5>
+                    <p class="card-text">Free cancellation up to 24 hours before check-in. Cancellations made within 24 hours of check-in are non-refundable.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

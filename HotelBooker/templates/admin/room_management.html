@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+
+{% block title %}Room Management - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2><i class="fas fa-door-open me-2"></i>Room Management</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRoomModal">
+                    <i class="fas fa-plus me-2"></i>Add New Room
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Room Filtering and Search -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <select class="form-select" id="roomTypeFilter">
+                                <option value="">All Room Types</option>
+                                {% set room_types = rooms|map(attribute='room_type')|list|unique %}
+                                {% for type in room_types %}
+                                    <option value="{{ type }}">{{ type }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter">
+                                <option value="">All Statuses</option>
+                                <option value="available">Available</option>
+                                <option value="occupied">Occupied</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="cleaning">Cleaning</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="roomSearch" placeholder="Search rooms...">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="d-grid">
+                                <button class="btn btn-outline-primary" id="clearFilters">Clear Filters</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Room Listings -->
+    <div class="row" id="roomsContainer">
+        {% for room in rooms %}
+            <div class="col-md-6 col-lg-4 mb-4 room-card" 
+                 data-room-type="{{ room.room_type }}" 
+                 data-status="{{ room.status }}"
+                 data-room-number="{{ room.room_number }}">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-header d-flex justify-content-between align-items-center
+                                {% if room.status == 'available' %}bg-success text-white
+                                {% elif room.status == 'occupied' %}bg-danger text-white
+                                {% elif room.status == 'maintenance' %}bg-warning text-dark
+                                {% elif room.status == 'cleaning' %}bg-info text-white
+                                {% else %}bg-secondary text-white{% endif %}">
+                        <h5 class="mb-0">Room #{{ room.room_number }}</h5>
+                        <span class="badge bg-light text-dark">{{ room.room_type }}</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Status:</span>
+                            <span class="{% if room.status == 'available' %}text-success
+                                        {% elif room.status == 'occupied' %}text-danger
+                                        {% elif room.status == 'maintenance' %}text-warning
+                                        {% elif room.status == 'cleaning' %}text-info
+                                        {% else %}text-secondary{% endif %} fw-bold">
+                                {{ room.status|capitalize }}
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Price per night:</span>
+                            <span class="fw-bold">${{ room.price_per_night }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="text-muted">Capacity:</span>
+                            <span>{{ room.capacity }} guest{% if room.capacity > 1 %}s{% endif %}</span>
+                        </div>
+                        
+                        <p class="card-text mt-3">{{ room.description or 'No description available.' }}</p>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRoomModal{{ room.id }}">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </button>
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRoomModal{{ room.id }}">
+                            <i class="fas fa-trash-alt me-1"></i>Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Edit Room Modal -->
+            <div class="modal fade" id="editRoomModal{{ room.id }}" tabindex="-1" aria-labelledby="editRoomModalLabel{{ room.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editRoomModalLabel{{ room.id }}">Edit Room #{{ room.room_number }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="{{ url_for('admin.edit_room', room_id=room.id) }}" method="post">
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label for="room_number{{ room.id }}" class="form-label">Room Number</label>
+                                    <input type="text" class="form-control" id="room_number{{ room.id }}" name="room_number" value="{{ room.room_number }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="room_type{{ room.id }}" class="form-label">Room Type</label>
+                                    <select class="form-select" id="room_type{{ room.id }}" name="room_type" required>
+                                        <option value="Single" {% if room.room_type == 'Single' %}selected{% endif %}>Single</option>
+                                        <option value="Double" {% if room.room_type == 'Double' %}selected{% endif %}>Double</option>
+                                        <option value="Deluxe" {% if room.room_type == 'Deluxe' %}selected{% endif %}>Deluxe</option>
+                                        <option value="Family" {% if room.room_type == 'Family' %}selected{% endif %}>Family</option>
+                                        <option value="Suite" {% if room.room_type == 'Suite' %}selected{% endif %}>Suite</option>
+                                        <option value="Presidential Suite" {% if room.room_type == 'Presidential Suite' %}selected{% endif %}>Presidential Suite</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="price{{ room.id }}" class="form-label">Price per Night ($)</label>
+                                    <input type="number" class="form-control" id="price{{ room.id }}" name="price" value="{{ room.price_per_night }}" min="0" step="0.01" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="capacity{{ room.id }}" class="form-label">Capacity (guests)</label>
+                                    <input type="number" class="form-control" id="capacity{{ room.id }}" name="capacity" value="{{ room.capacity }}" min="1" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description{{ room.id }}" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description{{ room.id }}" name="description" rows="3">{{ room.description }}</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="status{{ room.id }}" class="form-label">Status</label>
+                                    <select class="form-select" id="status{{ room.id }}" name="status" required>
+                                        <option value="available" {% if room.status == 'available' %}selected{% endif %}>Available</option>
+                                        <option value="occupied" {% if room.status == 'occupied' %}selected{% endif %}>Occupied</option>
+                                        <option value="maintenance" {% if room.status == 'maintenance' %}selected{% endif %}>Maintenance</option>
+                                        <option value="cleaning" {% if room.status == 'cleaning' %}selected{% endif %}>Cleaning</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delete Room Modal -->
+            <div class="modal fade" id="deleteRoomModal{{ room.id }}" tabindex="-1" aria-labelledby="deleteRoomModalLabel{{ room.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="deleteRoomModalLabel{{ room.id }}">Delete Room #{{ room.room_number }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Are you sure you want to delete this room? This action cannot be undone.</p>
+                            <p class="text-danger"><strong>Warning:</strong> Deleting a room will remove all associated reservations and payment records.</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <form action="{{ url_for('admin.delete_room', room_id=room.id) }}" method="post">
+                                <button type="submit" class="btn btn-danger">Delete Room</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Empty State for No Rooms -->
+    <div id="noRoomsFoundMessage" class="row d-none">
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-search me-2"></i>
+                No rooms match your search criteria. Please try different filters or <a href="#" data-bs-toggle="modal" data-bs-target="#addRoomModal">add a new room</a>.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Room Modal -->
+<div class="modal fade" id="addRoomModal" tabindex="-1" aria-labelledby="addRoomModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addRoomModalLabel">Add New Room</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ url_for('admin.add_room') }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="room_number" class="form-label">Room Number</label>
+                        <input type="text" class="form-control" id="room_number" name="room_number" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="room_type" class="form-label">Room Type</label>
+                        <select class="form-select" id="room_type" name="room_type" required>
+                            <option value="Single">Single</option>
+                            <option value="Double">Double</option>
+                            <option value="Deluxe">Deluxe</option>
+                            <option value="Family">Family</option>
+                            <option value="Suite">Suite</option>
+                            <option value="Presidential Suite">Presidential Suite</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="price" class="form-label">Price per Night ($)</label>
+                        <input type="number" class="form-control" id="price" name="price" min="0" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="capacity" class="form-label">Capacity (guests)</label>
+                        <input type="number" class="form-control" id="capacity" name="capacity" min="1" value="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="available" selected>Available</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="cleaning">Cleaning</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Room</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filter functions
+        const roomTypeFilter = document.getElementById('roomTypeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const roomSearch = document.getElementById('roomSearch');
+        const clearFilters = document.getElementById('clearFilters');
+        const roomCards = document.querySelectorAll('.room-card');
+        const noRoomsFoundMessage = document.getElementById('noRoomsFoundMessage');
+        
+        function filterRooms() {
+            const selectedType = roomTypeFilter.value.toLowerCase();
+            const selectedStatus = statusFilter.value.toLowerCase();
+            const searchText = roomSearch.value.toLowerCase();
+            
+            let visibleCount = 0;
+            
+            roomCards.forEach(card => {
+                const roomType = card.getAttribute('data-room-type').toLowerCase();
+                const status = card.getAttribute('data-status').toLowerCase();
+                const roomNumber = card.getAttribute('data-room-number').toLowerCase();
+                
+                const typeMatch = !selectedType || roomType === selectedType;
+                const statusMatch = !selectedStatus || status === selectedStatus;
+                const searchMatch = !searchText || 
+                    roomNumber.includes(searchText) || 
+                    roomType.includes(searchText) || 
+                    status.includes(searchText);
+                
+                if (typeMatch && statusMatch && searchMatch) {
+                    card.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    card.classList.add('d-none');
+                }
+            });
+            
+            // Show or hide no results message
+            if (visibleCount === 0) {
+                noRoomsFoundMessage.classList.remove('d-none');
+            } else {
+                noRoomsFoundMessage.classList.add('d-none');
+            }
+        }
+        
+        // Add event listeners
+        roomTypeFilter.addEventListener('change', filterRooms);
+        statusFilter.addEventListener('change', filterRooms);
+        roomSearch.addEventListener('input', filterRooms);
+        
+        clearFilters.addEventListener('click', function() {
+            roomTypeFilter.value = '';
+            statusFilter.value = '';
+            roomSearch.value = '';
+            filterRooms();
+        });
+        
+        // Set default values for Add Room modal
+        document.getElementById('addRoomModal').addEventListener('show.bs.modal', function() {
+            const roomTypeSelect = document.getElementById('room_type');
+            const priceInput = document.getElementById('price');
+            
+            roomTypeSelect.addEventListener('change', function() {
+                // Set default prices based on room type
+                const selectedType = this.value;
+                switch(selectedType) {
+                    case 'Single':
+                        priceInput.value = '80.00';
+                        document.getElementById('capacity').value = '1';
+                        break;
+                    case 'Double':
+                        priceInput.value = '120.00';
+                        document.getElementById('capacity').value = '2';
+                        break;
+                    case 'Deluxe':
+                        priceInput.value = '180.00';
+                        document.getElementById('capacity').value = '2';
+                        break;
+                    case 'Family':
+                        priceInput.value = '220.00';
+                        document.getElementById('capacity').value = '4';
+                        break;
+                    case 'Suite':
+                        priceInput.value = '250.00';
+                        document.getElementById('capacity').value = '3';
+                        break;
+                    case 'Presidential Suite':
+                        priceInput.value = '400.00';
+                        document.getElementById('capacity').value = '5';
+                        break;
+                }
+            });
+            
+            // Trigger change to set initial values
+            roomTypeSelect.dispatchEvent(new Event('change'));
+        });
+    });
+</script>
+{% endblock %}

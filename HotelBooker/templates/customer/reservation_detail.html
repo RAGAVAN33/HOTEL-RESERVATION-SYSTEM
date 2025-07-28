@@ -1,0 +1,311 @@
+{% extends 'base.html' %}
+
+{% block title %}Reservation #{{ reservation.id }} - Hotel Reservation System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-12 mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('customer.my_reservations') }}">My Reservations</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Reservation #{{ reservation.id }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>Reservation Details</h2>
+                <div>
+                    {% if reservation.status == 'pending' or reservation.status == 'confirmed' %}
+                        {% if reservation.check_in_date > now %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                                <i class="fas fa-times me-2"></i>Cancel Reservation
+                            </button>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Reservation #{{ reservation.id }}</h4>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h5 class="mb-3">Status</h5>
+                        <div class="d-flex align-items-center">
+                            {% if reservation.status == 'pending' %}
+                                <div class="badge bg-warning text-dark p-2 fs-6">Pending</div>
+                            {% elif reservation.status == 'confirmed' %}
+                                <div class="badge bg-success p-2 fs-6">Confirmed</div>
+                            {% elif reservation.status == 'checked-in' %}
+                                <div class="badge bg-info p-2 fs-6">Checked-in</div>
+                            {% elif reservation.status == 'checked-out' %}
+                                <div class="badge bg-secondary p-2 fs-6">Checked-out</div>
+                            {% elif reservation.status == 'cancelled' %}
+                                <div class="badge bg-danger p-2 fs-6">Cancelled</div>
+                            {% endif %}
+                            
+                            {% if reservation.status == 'confirmed' %}
+                                <div class="ms-3 text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>Your reservation is confirmed. Please arrive for check-in on {{ reservation.check_in_date.strftime('%Y-%m-%d') }}.
+                                </div>
+                            {% elif reservation.status == 'pending' %}
+                                <div class="ms-3 text-muted">
+                                    <i class="fas fa-clock me-2"></i>Your reservation is being processed.
+                                </div>
+                            {% elif reservation.status == 'checked-in' %}
+                                <div class="ms-3 text-muted">
+                                    <i class="fas fa-key me-2"></i>You have checked in. Enjoy your stay!
+                                </div>
+                            {% elif reservation.status == 'checked-out' %}
+                                <div class="ms-3 text-muted">
+                                    <i class="fas fa-check me-2"></i>Your stay is complete. Thank you for choosing us!
+                                </div>
+                            {% elif reservation.status == 'cancelled' %}
+                                <div class="ms-3 text-muted">
+                                    <i class="fas fa-ban me-2"></i>This reservation has been cancelled.
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Reservation Details</h5>
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <th>Booking Date:</th>
+                                        <td>{{ reservation.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Check-in Date:</th>
+                                        <td>{{ reservation.check_in_date.strftime('%Y-%m-%d') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Check-out Date:</th>
+                                        <td>{{ reservation.check_out_date.strftime('%Y-%m-%d') }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Nights:</th>
+                                        <td>{{ (reservation.check_out_date - reservation.check_in_date).days }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Guests:</th>
+                                        <td>{{ reservation.num_guests }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Room Information</h5>
+                            <table class="table table-sm">
+                                <tbody>
+                                    <tr>
+                                        <th>Room Type:</th>
+                                        <td>{{ reservation.room.room_type }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Room Number:</th>
+                                        <td>{{ reservation.room.room_number }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Capacity:</th>
+                                        <td>{{ reservation.room.capacity }} guest{% if reservation.room.capacity > 1 %}s{% endif %}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Rate per Night:</th>
+                                        <td>${{ reservation.room.price_per_night }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5 class="mb-3">Guest Information</h5>
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <th width="30%">Name:</th>
+                                    <td>{{ reservation.customer.name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ reservation.customer.email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td>{{ reservation.customer.phone or 'Not provided' }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    {% if reservation.status in ['confirmed', 'checked-in'] and reservation.check_in_date == now %}
+                        <div class="alert alert-success mb-4">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>Check-in is available today!</strong> Please visit the reception desk with your ID to complete the check-in process.
+                        </div>
+                    {% endif %}
+                    
+                    {% if reservation.status == 'confirmed' and (reservation.check_in_date - now).days <= 2 %}
+                        <div class="alert alert-info mb-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Your check-in is approaching!</strong> Your reservation is scheduled to begin in {{ (reservation.check_in_date - now).days }} day{% if (reservation.check_in_date - now).days != 1 %}s{% endif %}.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Payment Information</h4>
+                </div>
+                <div class="card-body">
+                    {% if payment %}
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Payment Status:</span>
+                            <span>
+                                {% if payment.status == 'pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif payment.status == 'completed' %}
+                                    <span class="badge bg-success">Completed</span>
+                                {% elif payment.status == 'failed' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                {% elif payment.status == 'refunded' %}
+                                    <span class="badge bg-info">Refunded</span>
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Payment Method:</span>
+                            <span>
+                                {% if payment.payment_method == 'credit_card' %}
+                                    <i class="fas fa-credit-card me-1"></i> Credit Card
+                                {% elif payment.payment_method == 'debit_card' %}
+                                    <i class="fas fa-credit-card me-1"></i> Debit Card
+                                {% elif payment.payment_method == 'paypal' %}
+                                    <i class="fab fa-paypal me-1"></i> PayPal
+                                {% elif payment.payment_method == 'cash' %}
+                                    <i class="fas fa-money-bill-wave me-1"></i> Cash
+                                {% elif payment.payment_method == 'bank_transfer' %}
+                                    <i class="fas fa-university me-1"></i> Bank Transfer
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Transaction ID:</span>
+                            <span class="text-muted">{{ payment.transaction_id }}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>Payment Date:</span>
+                            <span>{{ payment.payment_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            No payment information found for this reservation.
+                        </div>
+                    {% endif %}
+                    
+                    <hr>
+                    
+                    <h5 class="mb-3">Billing Summary</h5>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Room Rate:</span>
+                        <span>${{ reservation.room.price_per_night }} × {{ (reservation.check_out_date - reservation.check_in_date).days }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Subtotal:</span>
+                        <span>${{ reservation.room.price_per_night * (reservation.check_out_date - reservation.check_in_date).days }}</span>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Taxes & Fees (10%):</span>
+                        <span>${{ (reservation.room.price_per_night * (reservation.check_out_date - reservation.check_in_date).days * 0.1)|round(2) }}</span>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Total Amount:</span>
+                        <span class="fw-bold fs-5">${{ reservation.total_price }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            {% if reservation.status != 'cancelled' %}
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Important Information</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">Check-in time: 3:00 PM</li>
+                            <li class="list-group-item">Check-out time: 11:00 AM</li>
+                            <li class="list-group-item">Photo ID required at check-in</li>
+                            <li class="list-group-item">
+                                {% if reservation.status in ['pending', 'confirmed'] and (reservation.check_in_date - now).days > 1 %}
+                                    Free cancellation until {{ (reservation.check_in_date - timedelta(days=1)).strftime('%Y-%m-%d') }}
+                                {% else %}
+                                    Cancellation window has ended
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Reservation Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cancelModalLabel">Cancel Reservation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel this reservation?</p>
+                
+                {% if reservation.check_in_date <= now + timedelta(days=1) %}
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> Cancellations made within 24 hours of check-in are non-refundable.
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Your payment will be fully refunded as per our cancellation policy.
+                    </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <form action="{{ url_for('customer.cancel_reservation', reservation_id=reservation.id) }}" method="post">
+                    <button type="submit" class="btn btn-danger">Confirm Cancellation</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
